@@ -81,10 +81,15 @@ pub async fn new_command(command: &str, args: Option<Vec<&str>>) {
                 println!("Please provide a currency to convert from, a currency to convert to, and an amount to convert.");
                 println!("[Example: convert USD EUR 100]");
             } else {
-                println!("Converting {} {} to {}...", args[2], args[0], args[1]);
                 let from_currency = args[0];
                 let to_currency = args[1];
-                let amount = args[2].parse::<f64>().unwrap();
+                let amount = match args[2].parse::<f64>() {
+                    Ok(amount) => amount,
+                    Err(_) => {
+                        println!("Invalid amount provided. Please provide a valid number.");
+                        return;
+                    }
+                };
                 println!("Converting {} {} to {}...", amount, from_currency, to_currency);
                 let conversion_response = convert(from_currency, to_currency, amount).await;
                 match conversion_response {

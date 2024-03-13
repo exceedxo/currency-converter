@@ -21,7 +21,9 @@ enum RequestError {
     #[error("Inactive account.")]
     InactiveAccount,
     #[error("Quota reached.")]
-    QuotaReached
+    QuotaReached,
+    #[error("Unknown error.")]
+    UnknownError
 }
 
 #[derive(Serialize, Deserialize)]
@@ -79,14 +81,17 @@ pub async fn get_all_exchange_rates(base_currency: &str) -> Result<ApiMultirateR
     let response = get(&url).await?;
     let status = response.status();
     if !status.is_success() {
-        let error = response.json::<ErrorResponse>().await?;
+        let error = match response.json::<ErrorResponse>().await {
+            Ok(error) => error,
+            Err(_) => return Err(RequestError::UnknownError.into())
+        };
         match error.error_type.as_str() {
             "unsupported-code" => return Err(RequestError::UnsupportedCurrency.into()),
             "malformed-request" => return Err(RequestError::MalformedRequest.into()),
             "invalid-key" => return Err(RequestError::InvalidApiKey.into()),
             "inactive-account" => return Err(RequestError::InactiveAccount.into()),
             "quota-reached" => return Err(RequestError::QuotaReached.into()),
-            _ => return Err(RequestError::MalformedRequest.into())
+            _ => return Err(RequestError::UnknownError.into())
         }
     }
     let exchange_rate_response = response.json::<ApiMultirateResponse>().await?;
@@ -99,14 +104,17 @@ pub async fn get_exchange_rate(from: &str, to: &str) -> Result<ApiRateResponse> 
     let response = get(&url).await?;
     let status = response.status();
     if !status.is_success() {
-        let error = response.json::<ErrorResponse>().await?;
+        let error = match response.json::<ErrorResponse>().await {
+            Ok(error) => error,
+            Err(_) => return Err(RequestError::UnknownError.into())
+        };
         match error.error_type.as_str() {
             "unsupported-code" => return Err(RequestError::UnsupportedCurrency.into()),
             "malformed-request" => return Err(RequestError::MalformedRequest.into()),
             "invalid-key" => return Err(RequestError::InvalidApiKey.into()),
             "inactive-account" => return Err(RequestError::InactiveAccount.into()),
             "quota-reached" => return Err(RequestError::QuotaReached.into()),
-            _ => return Err(RequestError::MalformedRequest.into())
+            _ => return Err(RequestError::UnknownError.into())
         }
     }
     let exchange_rate_response = response.json::<ApiRateResponse>().await?;
@@ -119,14 +127,17 @@ pub async fn convert(from: &str, to: &str, amount: f64) -> Result<ApiConversionR
     let response = get(&url).await?;
     let status = response.status();
     if !status.is_success() {
-        let error = response.json::<ErrorResponse>().await?;
+        let error = match response.json::<ErrorResponse>().await {
+            Ok(error) => error,
+            Err(_) => return Err(RequestError::UnknownError.into())
+        };
         match error.error_type.as_str() {
             "unsupported-code" => return Err(RequestError::UnsupportedCurrency.into()),
             "malformed-request" => return Err(RequestError::MalformedRequest.into()),
             "invalid-key" => return Err(RequestError::InvalidApiKey.into()),
             "inactive-account" => return Err(RequestError::InactiveAccount.into()),
             "quota-reached" => return Err(RequestError::QuotaReached.into()),
-            _ => return Err(RequestError::MalformedRequest.into())
+            _ => return Err(RequestError::UnknownError.into())
         }
     }
     let exchange_rate_response = response.json::<ApiConversionResponse>().await?;
