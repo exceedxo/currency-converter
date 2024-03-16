@@ -10,7 +10,7 @@ jobs:
 
   build:
 
-    runs-on: rust:1.76.0-slim-bullseye
+    runs-on: debian:latest
 
     steps:
     -
