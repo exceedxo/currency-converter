@@ -1,3 +1,4 @@
+use std::env;
 use directories::ProjectDirs;
 use std::fs;
 use serde::{Serialize, Deserialize};
@@ -84,6 +85,9 @@ pub fn read_config() -> Result<Config> {
         };
         Ok(config)
     } else {
-        Err(ConfigError::NotFound.into())
+        match env::var("API_KEY") {
+            Ok(api_key) => return Ok(Config { api_key }),
+            Err(_) => return Err(ConfigError::NotFound.into()),
+        }
     }
 }
