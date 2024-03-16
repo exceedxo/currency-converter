@@ -7,7 +7,6 @@ pub async fn command_loop() {
         stdin().read_line(&mut input).unwrap();
         let split = input.trim().split_whitespace().collect::<Vec<&str>>();
         if split.is_empty() {
-            println!("Please enter a command.");
             continue;
         }
         let command = split[0];
