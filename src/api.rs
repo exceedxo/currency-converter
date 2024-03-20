@@ -144,3 +144,172 @@ pub async fn convert(from: &str, to: &str, amount: f64) -> Result<ApiConversionR
     Ok(exchange_rate_response)
 }
 
+#[cfg(test)]
+mod tests {
+    use super::{get_all_exchange_rates, get_exchange_rate, convert};
+
+    #[tokio::test]
+    async fn test_get_all_exchange_rates_correct() {
+        let response = get_all_exchange_rates("USD").await;
+        match response {
+            Ok(response) => {
+                assert_eq!(response.base_code, "USD");
+            }
+            Err(e) => {
+                panic!("Error getting exchange rates: {}", e);
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_get_all_exchange_rates_incorrect() {
+        match get_all_exchange_rates("UST").await {
+            Ok(_) => {
+                panic!("Expected an error, but got a response.");
+            }
+            Err(e) => {
+                assert_eq!(e.to_string(), "Unsupported currency.");
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_get_rate_both_correct() {
+        match get_exchange_rate("USD", "EUR").await {
+            Ok(response) => {
+                assert_eq!(response.base_code, "USD");
+                assert_eq!(response.target_code, "EUR");
+                assert_eq!(response.conversion_rate.is_nan(), false);
+            }
+            Err(e) => {
+                panic!("Error getting exchange rate: {}", e);
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_get_rate_left_wrong() {
+        match get_exchange_rate("UST", "EUR").await {
+            Ok(_) => {
+                panic!("Expected an error, but got a response.");
+            }
+            Err(e) => {
+                assert_eq!(e.to_string(), "Unsupported currency.");
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_get_rate_right_wrong() {
+        match get_exchange_rate("USD", "EUX").await {
+            Ok(_) => {
+                panic!("Expected an error, but got a response.");
+            }
+            Err(e) => {
+                assert_eq!(e.to_string(), "Unsupported currency.");
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_get_rate_both_wrong() {
+        match get_exchange_rate("UST", "EUX").await {
+            Ok(_) => {
+                panic!("Expected an error, but got a response.");
+            }
+            Err(e) => {
+                assert_eq!(e.to_string(), "Unsupported currency.");
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_convert_all_correct() {
+        match convert("USD", "EUR", 100.into()).await {
+            Ok(response) => {
+                assert_eq!(response.base_code, "USD");
+                assert_eq!(response.target_code, "EUR");
+                assert_eq!(response.conversion_result.is_nan(), false);
+            }
+            Err(e) => {
+                panic!("Error converting currency: {}", e);
+            }
+        }
+
+        match convert("USD", "EUR", 100.0.into()).await {
+            Ok(response) => {
+                assert_eq!(response.base_code, "USD");
+                assert_eq!(response.target_code, "EUR");
+                assert_eq!(response.conversion_result.is_nan(), false);
+            }
+            Err(e) => {
+                panic!("Error converting currency: {}", e);
+            }
+        }
+
+        match convert("USD", "EUR", 4231.1296.into()).await {
+            Ok(response) => {
+                assert_eq!(response.base_code, "USD");
+                assert_eq!(response.target_code, "EUR");
+                assert_eq!(response.conversion_result.is_nan(), false);
+            }
+            Err(e) => {
+                panic!("Error converting currency: {}", e);
+            }
+        }
+    }
+
+    
+    #[tokio::test]
+    async fn test_convert_wrong_left_currency() {
+        match convert("UST", "EUR", 100.into()).await {
+            Ok(_) => {
+                panic!("Expected an error, but got a response.");
+            }
+            Err(e) => {
+                assert_eq!(e.to_string(), "Unsupported currency.");
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_convert_wrong_right_currency() {
+        match convert("USD", "EUX", 100.into()).await {
+            Ok(_) => {
+                panic!("Expected an error, but got a response.");
+            }
+            Err(e) => {
+                assert_eq!(e.to_string(), "Unsupported currency.");
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_convert_small_amount() {
+        match convert("USD", "EUR", 0.00025.into()).await {
+            Ok(response) => {
+                assert_eq!(response.base_code, "USD");
+                assert_eq!(response.target_code, "EUR");
+                assert_eq!(response.conversion_result.is_nan(), false);
+            }
+            Err(e) => {
+                panic!("Error converting currency: {}", e);
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_convert_big_amount() {
+        match convert("USD", "EUR", 326235234543.32452362323.into()).await {
+            Ok(response) => {
+                assert_eq!(response.base_code, "USD");
+                assert_eq!(response.target_code, "EUR");
+                assert_eq!(response.conversion_result.is_nan(), false);
+            }
+            Err(e) => {
+                panic!("Error converting currency: {}", e);
+            }
+        }
+    }
+}
+

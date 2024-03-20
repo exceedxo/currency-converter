@@ -1,4 +1,5 @@
-use crate::{api::{get_all_exchange_rates, get_exchange_rate, convert}, config::{write_config, remove_config, read_config}};  
+use crate::{api::{get_all_exchange_rates, get_exchange_rate, convert}, config::{write_config, remove_config, read_config}};
+use std::process::exit;  
 
 enum Command {
     Help,
@@ -156,7 +157,7 @@ pub async fn new_command(command: &str, args: Option<Vec<&str>>) {
         }
         Some(Command::Exit) => {
             println!("Exiting the program...");
-            std::process::exit(0);
+            exit(0);
         }
         None => {
             println!("Command not recognized. Type help for a list of commands.");
