@@ -1,17 +1,16 @@
-name: Docker Image CI
+name: Docker Build + Test
 
 on:
   push:
     branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+
+env:
+  API_KEY: ${{ secrets.EXCHANGE_RATE_API_KEY }}
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
-
+    
     steps:
     -
       name: Checkout sources
@@ -32,6 +31,6 @@ jobs:
         load: true
         tags: exceedxo/currency-converter:latest
     -
-      name: Tests
-      run: cargo test --verbose
+      name: Test
+      run: cargo test
     
